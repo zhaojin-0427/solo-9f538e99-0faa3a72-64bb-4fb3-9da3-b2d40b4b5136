@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+  <h2>上传批次</h2>
+  <p class="hint">三种 CSV 可任选组合，一次提交为一批；底表、待修清单、放行状态同批生效，失败保留上次结果。同类同号以本次上传为准。</p>
+  <form method="post" action="{{ url_for('main.upload') }}" enctype="multipart/form-data" class="upload">
+    <label>到货 CSV<span class="hint">编号,采购行号,扫码条码,UTC时刻</span>
+      <input type="file" name="arrivals" accept=".csv"></label>
+    <label>采购行 CSV<span class="hint">编号,约定条码</span>
+      <input type="file" name="purchase_lines" accept=".csv"></label>
+    <label>用码记录 CSV<span class="hint">编号,条码,商品,UTC开始,UTC结束（含起点不含终点）</span>
+      <input type="file" name="code_usages" accept=".csv"></label>
+    <button type="submit">上传并回查</button>
+  </form>
+</section>
+
+<section class="card stats">
+  <span>到货 <b>{{ stats['arrivals'] }}</b></span>
+  <span class="ok">放行 <b>{{ stats['released'] }}</b></span>
+  <span class="bad">受阻 <b>{{ stats['blocked'] }}</b></span>
+  <span>采购行 <b>{{ stats['purchase_lines'] }}</b></span>
+  <span>用码记录 <b>{{ stats['code_usages'] }}</b></span>
+  <form method="get" action="{{ url_for('main.lookup') }}" class="lookup">
+    <input name="id" placeholder="输入到货编号查放行状态" required>
+    <button type="submit">查询</button>
+  </form>
+</section>
+
+<div class="cols">
+  <section class="card">
+    <h2>采购员待修（按采购行号）</h2>
+    <table>
+      <tr><th>原因</th><th>采购行号</th><th>受阻笔数</th><th></th></tr>
+      {% for it in po_items %}
+      <tr>
+        <td>{{ reason_labels[it['reason']] }}</td>
+        <td>{{ it['item_key'] }}</td>
+        <td class="num">{{ it['blocked'] }}</td>
+        <td><a href="{{ url_for('main.item', side='po', reason=it['reason'], key=it['item_key']) }}">明细</a></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4" class="empty">暂无待修项</td></tr>
+      {% endfor %}
+    </table>
+  </section>
+
+  <section class="card">
+    <h2>商品档案员待修（按条码）</h2>
+    <table>
+      <tr><th>原因</th><th>条码</th><th>受阻笔数</th><th></th></tr>
+      {% for it in barcode_items %}
+      <tr>
+        <td>{{ reason_labels[it['reason']] }}</td>
+        <td>{{ it['item_key'] }}</td>
+        <td class="num">{{ it['blocked'] }}</td>
+        <td><a href="{{ url_for('main.item', side='barcode', reason=it['reason'], key=it['item_key']) }}">明细</a></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4" class="empty">暂无待修项</td></tr>
+      {% endfor %}
+    </table>
+  </section>
+</div>
+
+<section class="card">
+  <h2>最近批次</h2>
+  <table>
+    <tr><th>批次</th><th>时间 (UTC)</th><th>内容</th></tr>
+    {% for b in batches %}
+    <tr><td>#{{ b['id'] }}</td><td>{{ b['uploaded_at'] }}</td><td>{{ b['text'] }}</td></tr>
+    {% else %}
+    <tr><td colspan="3" class="empty">暂无批次</td></tr>
+    {% endfor %}
+  </table>
+</section>
+{% endblock %}

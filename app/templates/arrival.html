@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}到货 {{ arrival['id'] }} - 生鲜到货数仓排查{% endblock %}
+{% block content %}
+<section class="card">
+  <h2>到货 {{ arrival['id'] }}
+    {% if status and status['released'] %}
+    <span class="badge ok">放行</span>
+    {% else %}
+    <span class="badge bad">受阻</span>
+    {% endif %}
+  </h2>
+  <table class="kv">
+    <tr><th>采购行号</th><td>{{ arrival['po_line_no'] }}</td></tr>
+    <tr><th>扫码条码</th><td>{{ arrival['barcode'] }}</td></tr>
+    <tr><th>UTC时刻</th><td>{{ arrival['ts']|utc }}</td></tr>
+    <tr><th>最后核查批次</th><td>{{ ('#' ~ status['checked_batch']) if status else '-' }}</td></tr>
+  </table>
+  {% if blocks %}
+  <h3>阻断原因（全部解除才放行；更正数据后本页状态随之更新，也可能被退回）</h3>
+  <table>
+    <tr><th>原因</th><th>挂在</th><th>说明</th></tr>
+    {% for b in blocks %}
+    <tr>
+      <td>{{ reason_labels[b['reason']] }}</td>
+      <td>{{ side_labels[b['side']] }} <code>{{ b['item_key'] }}</code></td>
+      <td>{{ b['detail'] }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p class="ok">当前无阻断原因，予以放行。</p>
+  {% endif %}
+  <p><a href="{{ url_for('main.index') }}">← 返回</a></p>
+</section>
+{% endblock %}

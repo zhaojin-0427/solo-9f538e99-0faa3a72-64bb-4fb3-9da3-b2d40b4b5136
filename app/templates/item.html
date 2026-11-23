@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}待修明细 - 生鲜到货数仓排查{% endblock %}
+{% block content %}
+<section class="card">
+  <h2>待修明细：{{ reason_labels[reason] }} ｜ {{ side_labels[side] }} <code>{{ key }}</code> ｜ 受阻 {{ rows|length }} 笔</h2>
+  <table>
+    <tr><th>到货编号</th><th>采购行号</th><th>扫码条码</th><th>UTC时刻</th><th>说明</th><th>状态</th></tr>
+    {% for r in rows %}
+    <tr>
+      <td><a href="{{ url_for('main.arrival', arrival_id=r['arrival_id']) }}">{{ r['arrival_id'] }}</a></td>
+      <td>{{ r['po_line_no'] }}</td>
+      <td>{{ r['barcode'] }}</td>
+      <td>{{ r['ts']|utc }}</td>
+      <td>{{ r['detail'] }}</td>
+      <td><a href="{{ url_for('main.arrival', arrival_id=r['arrival_id']) }}">查看</a></td>
+    </tr>
+    {% endfor %}
+  </table>
+  <p><a href="{{ url_for('main.index') }}">← 返回清单</a></p>
+</section>
+{% endblock %}
